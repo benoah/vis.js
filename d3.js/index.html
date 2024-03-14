@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Team Network Visualization</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .tooltip {
+            position: absolute;
+            visibility: hidden;
+            background-color: black;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="tooltip" class="tooltip"></div>
+    <svg width="800" height="600"></svg>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        const svg = d3.select("svg"),
+              width = +svg.attr("width"),
+              height = +svg.attr("height"),
+              tooltip = d3.select(".tooltip");
+
+        // Define simulation
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-400))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        
+        const nodes = [
+            {id: "Thibaut Courtois", group: 1, image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJAAXgMBIgACEQEDEQH/xAAbAAADAAMBAQAAAAAAAAAAAAAEBQYCAwcBAP/EADsQAAIBAwIDBgMGBQMFAQAAAAECAwAEEQUSBiExEyJBUWFxMoGRFEKhwdHwFSNSYrEkM+EWF0Nyggf/xAAZAQACAwEAAAAAAAAAAAAAAAACAwABBAX/xAAiEQACAgICAwADAQAAAAAAAAAAAQIRAyEEEhMxQSJCYTP/2gAMAwEAAhEDEQA/AJ2Xhy7i+BjQj2OoQnmhNdfa1t38BQ8ulQv91aTYw5KJrmLlJG4+VbU1Hb8RI9xXSZuH4XH+2PpSy64UhfP8sfSrUiiSj1IH7340Ql+h+9Rd3wcATsyvtSDUNJawlCG82sx5L1+vlRJtkpDxLxW6EGs+0B54FT1uGidA86kMfI097GRI845eBFTs17J1TN4ZT44rwpnoc0omveyfDZHvWceoKfvCi7A9RtGhDVvGcc6WwXy/1UUL1SOoq1JAuJhacbREAM+D606s+KYpcYkFctt7HcRuzTqz04KBhiKFY7Cc0jp8OvRMObLWOpcUWGnWhnuTnwVF5lz5CueXKvaQPMZWCIpY8/AVMvqL6lO0kpJii5AFuQovDvZXe/RU6txjqerMUh/0tux2hIurf+zH5dMULpunyzTBrlAE3bWwcnPz+dH8P6NNcLHcbI+zxlFA6g+tWseitJCqAIGBB3UfkhHSL8U5eyAuLNod2N2F54wK9gW9iXdbTKAxOIyO6fkasrvhO6YbUddj53kV8nCogt2UTF3JyCfA1PNF6ZPFL4IdDhtNZEkLxOk6c2Dcx4dD9TRVxwih5qpHtSx5ptB1sJKXBYjtOz5ZHPa3v1HzroNjq9rfWsUyEFZFDAkflScip6Ljf0gZeGLiP/adhQsmk6jEcDn8q6kDbSf0141nbv4CgsI5NHAEPSi45FUUxfTfI0JcWbQxs5HIU5SaKljv2IuItSKwPGe7EwK9Mljjw9PWkGmL2ULHeqF28uh/TlRvEA3GRo3BMIIcjntYt0/Ct+rWu6DT+yMQSeFBtRcFR4E+pBGfWi772AsetFlwlqjS20aMRkd3u9KtrG55jNQ2kafBpqojyiNF+8x6n9apbbXtLt3WGeZlY9C6kVjd3aOgqqmUcl2AhANKrq6IbC9aybUbQr2gYFMZzmlVzxBo5kEK3KmQ9QoyRVbZNL2SPHLyXOpRrBntBAdrDwO4EH5YoG01C+tY0ji5oq4HPypzrBga/sbm1KTrIsm0OO6duORHz6VpsoYyjZAHePLy8/xzW2EVJUzBkfV2jGHiS9i+ONj7GjoeMcDD7gfWtb2kTDoKFk02Mn4at8dC1mGseoxsOtatQvoxbPhlyVOd3QDzNIwxFCX84buYLZGOR+H1obOtOCSFusMkryiGMCMOXQbObgBck+Q/UVUacYLnhm0eURPPbvHEXC+HIj8CKjLws0iCSRiUQ7/LH7AphZvcWlsqQuyQuyGeNT3Tg5B9TyPOhkrMsVTbLyXTjqNioRmEi9Oz+IUll4duLy6CbL/aBjbKAqg+JyRnwpvo+sLaKofyyD501/j7FWuJIpDAp5iNcu3tWW2maKTVgY4dZOHp4Ulk7QHasmeeKl24cW3njihivd+e92fe3+WTjpVw3Gmhx2Tq7zRsx5RyRkP7baDPE0SuJYo5RZv8DTLhl9x1FTcdk/GWmLNThh0nTokYFniViu7qCcL+f1pVaswR8DnvO4+BPpW7iLVIr5ooHBy0qEv5qCDt9yduD6eoprBaxMHK/BuOz88fOtMbqzNKHdi0TOKzE58aOaxQmsDp/kaK5i3h/huh4aPYpJMHZnOFRfE0u1DhiaB1ikCDaW7XLYG0+A8+YOfMA10xriC0t2uZATHAoI6Abun4fnUPxBML+5unO2Sa4BVRgbQqgFnGeq57uPE+dUhks0pM53HEq9iwKKxkbeT3gFHQ4o2C2VmiiG4rCNz5PLoQAPxospiMXJkzLcMWjDDJQHAJz8untTa20WSDSmvZi0cbHbGXU7pj6egHjUdmjGl1tizS7jcVt5eTRHGfMeBpql3qcDAQ2dtLHnBaSUqExnmQBnHrzpDqELW8onTqOY/SqTTHbV9OSfT5RHdRciD5+RpLSuxcX+rCLu11ERG7deHlkC5EhdmwMnlnNJZbzU5WYX8FrEig9+LI3LnkcHpmj2m10ybDoVglwTj7VkcvXpnNJuLZHigWxWXdM/enkA5e378qtK9Ik3SsRrei51RGzujVht/tAzz/AM/sVaRX7bV5csVznTVbtN4YDb3sN48+nrVtbyiWMNgg4GQetPqg+LJO0xqt/wCYrel+hHOk/Ssd9SzQ4oo9Qubq9MsTSBbOKXYYz1YjmST4CksUM+r3X2lrhorR1Mayd4yS48EABZvYDNUicO3t3NtuEzLNMGe3GXYL0y4xtBwD1IGcc6b3UtnoapZ/9SfwqGJRGtrp0CzzYHjI+0gH0AAHrTFh2cl5UkB6bodrpMtjI1le/amz9mt+zRrmYDqQhysUfPmWOeYyRyBq+OdKa/4fEsURWS3xL2Z6hcd4cvLl9Ki73iaJVez4X+1pNckC61W7bdPIB4A9QBk46YycAdaaf/l+tzQPJoups7JI5ktZ3bduJ6qT69Rn1ps8E+l1oVHMu+2QOoRAoVK0ghupNLuHaN5EDddhrq/HHCMlrK13YJm1ck4H/jPl7eVc2v8ATJXPwc84Nc2+jpnRaWRWgOPifUGyjzOxyeeB08K1zGW6jctnLczjr7+pxWcOiyiUdw09h0WQWpCZ7VugHU+nzou6+ArE/ot4S4eFz201xKsSOHSJ87trKNxOPHu5qn4XjstSszCXi1cgDBth2N3EvQHBwHX0OMepqlvdJtNI4A7BowJpIzEyuMMsj/FnPiBn6VzQaC1uVlt5CkqnKMORU+YPhXTxYnKF0YJ5uk9MqtQ4ZuYtzWEq3ajmYdpjuFHrEwyfcZpGYmV2RlZWU4ZSMEH1pna8acS2Q7HUAl7Fj4LuMSBvY9T9ap4dT0viKIPr+mNayr8LwuXLD16ED0yflS5ceX6o04+cl/oLr/WLvVYTDHIbS1X4ba3O1cf3Hqx9+tKhaQqu0AVp0zc8Ms5bEe3aPU+dANqYTexbxwK6qlCEVqjjuMm/Y2jRIjlQOv5URH3AMEgqBgjlikKaiO6rE5Kk/U0a15gZ3DFF5o0V0kdO4e4vhuIfses7QcbRMwyrjyby9636hwZZ3h+0afKqBhkKe8h9jXK7HUYzI7SNhAv19qEstc1fSZHOlahcW8ZcsEDZXr/Scj8K5fI4+OW4m3BnyQ0dNTgi7Egz9nA893/FOLPh+w0KJ9S1CaNuwUvufCpHjx51y/8A7jcV7Novo+nx/Z0z/jFT+q6trPEMm3UL6e7wR3XOEX/5HIfSs0OLs0T5UmtlVr/Eo4k1Ob7IP9DCT2XX+Y2Mbj9OX/NJEu+6uTXmj20lmP6vPlTK7sLe8jZ4/wCXLjOR4+4rrwhJQSRzZSTm7AFvg77WwSOhxWUOpc2GeYJFLZLS7S5WPsjvzyx0PrmiodMiQt27uXycgNgCqxvJJ0kXJQSMzeFbXsx1zhR55qcIaS52E90HJ9K22V46TvBKdyqCVJ6461uih2qXbq5/Cl5ZrIk0MhHq2bFiIkUsCN2CPajtNjW+uJLcqGiI50BrErtdWogUkSQLtI8/3irfQeGbu20H+JlBtz3157wD94jy6fI56VeNRjL8gZtuOhCNMEeUUd0HArRcWnZjpzqkdRgk0BMnbbm+6Kc8KqxSysUW9vHKDj4wMlTTCzt1CBcYxn/NCWjBb6QeHZn8qMhnAUkc6mFJKy8l3QciAVkQBk5xQa3yZ61NapePeOWkY7MnYvgo/Wry5441ZUMTm6K1nXBGefWp/Wb42t2+0AliDg+1B6TNIkjqDydcqppff3Bmutz/ANOPxoFylJa9h+Hq9g1lKs5kl5qVGwg+Bp/2JvZUhiysPQnoW9KUz7dkrooUNIcADHTl+tU9rtjVpWIGB1PhVYcKtpl5Jv4UXCGmWU0stxeC27CLAWKV9ox4H25f4q2k4j0/tCq6lZO/ZCN1LBy/owB69enIc/auPanO91ZNDbMViUAFxyz51lbwLYW8K2eGZ0BP9uRVZsHkyEhPrEpNa+zC9W20u4adHXfKSpGw56CtF0yRxdjHzOOfpQcV1FZwHDBp36knx9a9t2V42zIGkfnkmtVdY1Yj27FMRZtRkRMZaJgM+fKtcU0kWUkUqw6g0Y0dvblnWVGnbqwbp6CtxNvqEJSYdlKo7sg6fv0rO41Gr2Ou36FU0oPeU4PlS+flgCs7qOaK4MIKuxPdKnkaKjtoEjKSMksp6kNyT2rM4SyDlJQNNgSb23CjqdtKtYiuLe6YFPE8/Ag9KprRYbZvgUORyfOeXl6Uu4qbdYRFDkiUf4NOhxko9pPYDy3Kkj//2Q=="},
+            {id: "Sergio Ramos", group: 1, image: "data:image/jpeg;base64,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"},
+        ];
+
+        const links = [
+            {source: "Thibaut Courtois", target: "Sergio Ramos"},
+            {source: "Thibaut Courtois", target: "Sergio Ramos"},
+            {source: "Sergio Ramos", target: "Karim Benzema"},
+            {source: "Marc-André ter Stegen", target: "Lionel Messi"},
+            {source: "Lionel Messi", target: "Gerard Piqué"},
+            // Define the rest of your connections here
+        ];
+
+        // Add zoom capabilities
+        const zoomHandler = d3.zoom()
+            .on("zoom", (event) => {
+                container.attr("transform", event.transform);
+            });
+        zoomHandler(svg);
+
+        // Add links
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(links)
+            .join("line")
+            .attr("stroke-width", 2)
+            .attr("stroke", "grey");
+
+        // Container for nodes to support zoom and pan
+        const container = svg.append("g");
+
+        // Add nodes
+        const node = container.selectAll(".node")
+            .data(nodes)
+            .join("g")
+            .attr("class", "node")
+            .call(drag(simulation));
+
+        node.append("image")
+            .attr("xlink:href", d => d.image)
+            .attr("x", -16)
+            .attr("y", -16)
+            .attr("width", 32)
+            .attr("height", 32);
+
+        node.on("mouseover", function(event, d) {
+            tooltip.html(d.id)
+                   .style("visibility", "visible")
+                   .style("left", (event.pageX + 10) + "px")
+                   .style("top", (event.pageY + 10) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.style("visibility", "hidden");
+        });
+
+        simulation.nodes(nodes).on("tick", ticked);
+        simulation.force("link").links(links);
+
+        function ticked() {
+            link.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node.attr("transform", d => `translate(${d.x}, ${d.y})`);
+        }
+
+        function drag(simulation) {
+            function start(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+
+            function drag(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+
+            function end(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+
+            return d3.drag()
+                .on("start", start)
+                .on("drag", drag)
+                .on("end", end);
+        }
+    </script>
+</body>
+</html>

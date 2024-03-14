@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Team Network Visualization</title>
+    <link href="https://unpkg.com/vis-network/standalone/umd/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #FFEB3B;
+            
+        }
+        #mynetwork {
+    width: 80vw;
+    height: 80vh;
+    border: 1px solid #F0F0F0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+   
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden; /* Ensures nothing spills out of the container */
+}
+
+#tooltip {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    min-width: 120px;
+    padding: 8px 12px;
+    background: rgba(34, 34, 34, 0.85); /* darkGrey with opacity for readability */
+    color: #ffe658; /* yellow for text */
+    border-radius: 6px;
+    font-size:32px;
+    pointer-events: none;
+    z-index: 5;
+    transition: opacity 0.3s ease-in-out, transform 0.2s ease;
+    transform: translate(-50%, -50%) scale(0.9); /* Centers and scales the tooltip for animation */
+}
+* Node label styles */
+.vis-label {
+    color: #fff; /* White color for the text */
+    font-size: 16px; /* Adjust the font size as needed */
+    font-weight: bold; /* Make the font bold */
+    text-shadow:
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000; /* Text shadow to make the label readable on varying backgrounds */
+}
+
+/* Enhance the interaction with hover states */
+.vis-network .vis-node:hover {
+    cursor: pointer;
+    transform: scale(1.1); /* Slightly increase the size to indicate interactivity */
+    z-index: 10; /* Ensure the node is above others */
+}
+
+
+.vis-network .vis-node:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+/* Style the network edges */
+.vis-network .vis-edge {
+    stroke-width: 2px;
+    stroke-linecap: round;
+} 
+
+/* Node specific styling for different types */
+.vis-network .vis-node.real-madrid {
+    border-color: #e96d86; /* redMedium from your palette */
+}
+
+.vis-network .vis-node.barcelona {
+    border-color: #2b8aa1; /* blue from your palette */
+}
+
+/* Ensuring that the interaction with nodes is smooth and visually appealing */
+.vis-network .vis-node {
+    transition: transform 0.2s ease;
+}
+
+/* Custom styling for buttons or other controls if needed */
+.button {
+    background-color: #15b53e; /* green */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #169435; /* green1 */
+}
+    </style>
+</head>
+<body>
+    <div id="mynetwork"></div>
+    <div id="tooltip"></div> <!-- Tooltip container -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script>
+      var nodes = [
+            // Real Madrid Players
+            { id: 1, label: 'Thibaut Courtois', shape: 'circularImage', image: 'img/courtois.png', title: 'Goalkeeper, 28 years old, 1.99m' },
+            { id: 2, label: 'Sergio Ramos', shape: 'circularImage', image: 'img/ramos.png', title: 'Defender, 34 years old, 1.84m' },
+            { id: 3, label: 'Karim Benzema', shape: 'circularImage', image: 'img/benzema.png', title: 'Forward, 32 years old, 1.85m' },
+            { id: 4, label: 'Real Madrid', shape: 'circle', color: '#FFFFFF', font: { color: '#000000' } },
+
+            // Barcelona Players
+            { id: 5, label: 'Marc-André ter Stegen', shape: 'circularImage', image: 'img/terstegen.png', title: 'Goalkeeper, 28 years old, 1.87m' },
+            { id: 6, label: 'Lionel Messi', shape: 'circularImage', image: 'img/messi.png', title: 'Forward, 33 years old, 1.70m' },
+            { id: 7, label: 'Gerard Piqué', shape: 'circularImage', image: 'img/pique.png', title: 'Defender, 33 years old, 1.94m' },
+            { id: 8, label: 'Barcelona', shape: 'circle', color: '#004D98', font: { color: '#FFFFFF' } }
+        ];
+
+        var edges = [
+        { from: 1, to: 4 },
+            { from: 2, to: 4 },
+            { from: 3, to: 4 },
+            { from: 5, to: 8 },
+            { from: 6, to: 8 },
+            { from: 7, to: 8 }
+        ];
+
+        function draw() {
+    var container = document.getElementById('mynetwork');
+    var tooltip = document.getElementById('tooltip');
+    var data = { nodes: nodes, edges: edges };
+    var options = {
+        nodes: {
+            shape: 'dot',
+            size: 16,
+            font: {
+                color: '#222222',
+                size: 14, // Adjust size to make it more readable
+                face: 'Arial'
+            }
+        },
+        edges: {
+            color: {
+                color: '#848484',
+                highlight: '#848484',
+                hover: '#848484',
+                inherit: false
+            },
+            width: 2
+        },
+        interaction: {
+            hover: true
+        },
+        // Add any other options you need
+    };
+
+    var network = new vis.Network(container, data, options);
+
+    network.on("click", function (params) {
+        if (params.nodes.length > 0) {
+            var nodeId = params.nodes[0];
+            var nodeData = nodes.find(node => node.id === nodeId);
+
+            // Show tooltip with node information
+            tooltip.innerHTML = nodeData.title;
+            tooltip.style.top = params.pointer.DOM.y + 'px';
+            tooltip.style.left = params.pointer.DOM.x + 'px';
+            tooltip.style.visibility = 'visible';
+            tooltip.style.opacity = '1'; // Make sure to set the opacity to 1 to show it
+            tooltip.style.transform = 'translate(-50%, -50%) scale(1)'; // Reset the transform for tooltip animation
+        } else {
+            // Hide tooltip when clicking elsewhere
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.opacity = '0';
+        }
+    });
+
+    network.on("dragStart", function () {
+        // Hide tooltip on drag
+        tooltip.style.visibility = 'hidden';
+        tooltip.style.opacity = '0';
+    });
+}
+
+
+        window.addEventListener("load", draw);
+    </script>
+</body>
+</html>
